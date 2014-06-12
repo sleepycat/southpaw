@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["mike@korora.ca"]
   spec.summary       = "An experimental Ruby micro-framework"
   spec.description   = "A Ruby micro-framework exploring security and architechtural ideas."
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/sleepycat/southpaw"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
