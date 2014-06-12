@@ -50,7 +50,12 @@ module Southpaw
         break unless @block.nil?
       end
       if @block
-      response.write(@block.call(@params))
+        begin
+          response.write(@block.call(@params))
+        rescue StandardError => e
+          response.status = 500
+          response.write("Internal Server error. Sorry.")
+        end
       else
         response.status = 404
         response.write("Page not found")

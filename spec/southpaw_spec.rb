@@ -69,6 +69,11 @@ module Southpaw
       expect(status).to eq 404
     end
 
+    it "responds with a 500 when things explode" do
+      Southpaw.define_routes(){ get('/foo', {}, &Proc.new{ raise 'hell' }) }
+      status, headers, body = get '/foo'
+      expect(status).to eq 500
+    end
 
 
   end
