@@ -49,7 +49,12 @@ module Southpaw
         @params, @block = route.match(request.env['REQUEST_URI'])
         break unless @block.nil?
       end
+      if @block
       response.write(@block.call(@params))
+      else
+        response.status = 404
+        response.write("Page not found")
+      end
       response.finish
     end
   end

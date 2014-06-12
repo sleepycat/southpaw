@@ -38,8 +38,19 @@ module Southpaw
       }
     end
 
-    let(:app){ Southpaw::App.new }
+    def get path
+      env = {
+        "rack.input"=> StringIO.new(),
+        "errors"=>STDERR,
+        "REQUEST_METHOD"=>"GET",
+        "REQUEST_URI"=>path
+      }
+      app.call(env)
+    end
 
+    def app
+      Southpaw.application
+    end
 
     it "it returns Rack's famous array of 3 things" do
       Southpaw.define_routes(){ get('/foo', {}, &Proc.new{ "<html>foo</html>" }) }
@@ -51,6 +62,14 @@ module Southpaw
       env['REQUEST_URI'] = '/technologies/around?lat=45.42&lng=-75.70'
       expect(Southpaw.application.call(env)[2].body).to eq ['lat:45.42,lng:-75.7']
     end
+
+    it "responds with a 404 if no routes match" do
+      Southpaw.define_routes(){ get('/foo', {}, &Proc.new{}) }
+      status, headers, body = get '/bar'
+      expect(status).to eq 404
+    end
+
+
 
   end
 
