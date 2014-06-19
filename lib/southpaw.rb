@@ -37,21 +37,18 @@ module Southpaw
 
   class App
 
-    attr_accessor :routes
-
-    def initialize
-    end
+    attr_accessor :routes, :request, :response
 
     def call env
-      request = Rack::Request.new env
-      response = Rack::Response.new
+      @request = Rack::Request.new env
+      @response = Rack::Response.new
       @routes[request.request_method.downcase.to_sym].each do |route|
-        @params, @block = route.match(request.env['REQUEST_URI'])
+        @params, @block = route.match(request.fullpath)
         break unless @block.nil?
       end
       if @block
         begin
-          response.write(@block.call(@params))
+          instance_exec(@params, &@block)
         rescue StandardError => e
           response.status = 500
           response.write("Internal Server error. Sorry.")

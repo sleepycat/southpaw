@@ -1,12 +1,11 @@
+require 'rack/test'
 require_relative '../lib/southpaw'
 
 ENV['RACK_ENV'] = 'test'
 
 describe 'The HelloWorld App' do
 
-  let(:env) do
-    {'REQUEST_URI' => '/', 'REQUEST_METHOD' => 'GET'}
-  end
+  include Rack::Test::Methods
 
   def app
     Southpaw.application
@@ -15,10 +14,10 @@ describe 'The HelloWorld App' do
   it "says hello" do
     Southpaw.define_routes do
       get '/', {} do
-        "Hello World"
+        response.write "Hello World"
       end
     end
-    status, headers, response = app.call(env)
-    expect(response.body).to eq ['Hello World']
+    get '/'
+    expect(last_response.body).to eq 'Hello World'
   end
 end

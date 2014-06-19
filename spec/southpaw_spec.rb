@@ -1,3 +1,5 @@
+require 'pry'
+require 'rack/test'
 require 'rspec'
 require_relative '../lib/southpaw'
 
@@ -29,52 +31,39 @@ module Southpaw
 
   describe App do
 
-    let(:env) do
-      {
-        "rack.input"=> StringIO.new(),
-        "errors"=>STDERR,
-        "REQUEST_METHOD"=>"GET",
-        "REQUEST_URI"=>"/foo",
-      }
-    end
-
-    def get path
-      env = {
-        "rack.input"=> StringIO.new(),
-        "errors"=>STDERR,
-        "REQUEST_METHOD"=>"GET",
-        "REQUEST_URI"=>path
-      }
-      app.call(env)
-    end
+    include Rack::Test::Methods
 
     def app
       Southpaw.application
     end
 
-    it "it returns Rack's famous array of 3 things" do
-      Southpaw.define_routes(){ get('/foo', {}, &Proc.new{ "<html>foo</html>" }) }
-      expect(Southpaw.application.call(env)).to have_exactly(3).items
-    end
-
-    it 'properly deals with query params' do
-      Southpaw.define_routes(){ get('/technologies/around{?lat,lng}', {lat: :to_f, lng: :to_f}, &Proc.new {|p| "lat:#{p[:lat]},lng:#{p[:lng]}" }) }
-      env['REQUEST_URI'] = '/technologies/around?lat=45.42&lng=-75.70'
-      expect(Southpaw.application.call(env)[2].body).to eq ['lat:45.42,lng:-75.7']
+    it 'properly deals with query params', focus: true do
+      Southpaw.define_routes do
+        get '/technologies/around{?lat,lng}', {lat: :to_f, lng: :to_f} do |p|
+          response.write "lat:#{p[:lat]},lng:#{p[:lng]}"
+        end
+      end
+      get '/technologies/around?lat=45.42&lng=-75.70'
+      expect(last_response.body).to eq 'lat:45.42,lng:-75.7'
     end
 
     it "responds with a 404 if no routes match" do
       Southpaw.define_routes(){ get('/foo', {}, &Proc.new{}) }
-      status, headers, body = get '/bar'
-      expect(status).to eq 404
+      get '/bar'
+      expect(last_response.status).to eq 404
     end
 
     it "responds with a 500 when things explode" do
-      Southpaw.define_routes(){ get('/foo', {}, &Proc.new{ raise 'hell' }) }
-      status, headers, body = get '/foo'
-      expect(status).to eq 500
+      Southpaw.define_routes(){ get('/foo', {}, &Proc.new{|p| raise 'hell' }) }
+      get '/foo'
+      expect(last_response.status).to eq 500
     end
 
+    it 'gives access to a response object within the block' do
+      Southpaw.define_routes(){ get('/foo', {}, &Proc.new{|p| response.write 'foo!' }) }
+      get '/foo'
+      expect(last_response.body).to eq 'foo!'
+    end
 
   end
 
