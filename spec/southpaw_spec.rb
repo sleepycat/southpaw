@@ -25,6 +25,13 @@ describe Southpaw do
     expect(app.routes[:get].length).to eq 1
   end
 
+  it 'allows you to configure it' do
+    Southpaw.configuration do
+      foo bar: 'baz'
+    end
+    expect(Southpaw.application.config.foo[:bar]).to eq 'baz'
+  end
+
 end
 
 module Southpaw

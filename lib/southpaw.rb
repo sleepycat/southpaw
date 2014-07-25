@@ -1,5 +1,6 @@
 require 'rack'
 require_relative 'southpaw/route'
+require_relative 'southpaw/configuration'
 require_relative "southpaw/version"
 
 module Southpaw
@@ -21,9 +22,11 @@ module Southpaw
     end
 
     def application
-      App.new.tap do |app|
-        app.routes = @routes
-      end
+      App.new @routes, @config
+    end
+
+    def configuration
+      @config = Configuration.new &Proc.new
     end
 
     private
@@ -37,7 +40,12 @@ module Southpaw
 
   class App
 
-    attr_accessor :routes, :request, :response
+    attr_accessor :routes, :request, :response, :config
+
+    def initialize routes, config
+      @routes = routes
+      @config = config
+    end
 
     def call env
       @request = Rack::Request.new env
@@ -59,6 +67,7 @@ module Southpaw
       end
       response.finish
     end
+
   end
 
 
