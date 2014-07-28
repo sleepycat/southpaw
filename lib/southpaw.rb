@@ -47,7 +47,9 @@ module Southpaw
       @config = config
     end
 
+
     def call env
+      @env = env
       @request = Rack::Request.new env
       @response = Rack::Response.new
       @routes[request.request_method.downcase.to_sym].each do |route|
@@ -58,6 +60,7 @@ module Southpaw
         begin
           instance_exec(@params, &@block)
         rescue StandardError => e
+          dump_error(e)
           response.status = 500
           response.write("Internal Server error. Sorry.")
         end
@@ -66,6 +69,13 @@ module Southpaw
         response.write("Page not found")
       end
       response.finish
+    end
+
+    private
+
+    def dump_error error
+      msg = ["#{error.class} - #{error.message}:", *error.backtrace].join("\n\t")
+      @env['rack.errors'].puts(msg)
     end
 
   end

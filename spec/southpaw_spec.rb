@@ -66,6 +66,13 @@ module Southpaw
       expect(last_response.status).to eq 500
     end
 
+    it 'writes errors to rack.errors' do
+      err = double('stderr', flush: true)
+      expect(err).to receive(:puts).with(/RuntimeError/)
+      Southpaw.define_routes(){ get('/foo', {}, &Proc.new{|p| raise 'hell' }) }
+      get '/foo', {}, {'rack.errors' => err }
+    end
+
     it 'gives access to a response object within the block' do
       Southpaw.define_routes(){ get('/foo', {}, &Proc.new{|p| response.write 'foo!' }) }
       get '/foo'
