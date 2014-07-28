@@ -4,10 +4,6 @@ module Southpaw
 
   describe Configuration do
 
-   # it 'has a logger' do
-   #   expect(Configuration.new.logger).to equal STDOUT
-   # end
-
     it 'lets you define methods with a DSL' do
       config = Configuration.new do
         foo bar: 'baz'
